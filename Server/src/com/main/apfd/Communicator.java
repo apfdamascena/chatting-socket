@@ -1,13 +1,16 @@
 package com.main.apfd;
 
 import java.io.*;
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.StringUtils;
 
-public class Communicator {
+public class Communicator implements Workers {
 
     private InputStream inputStream;
     private OutputStream outputStream;
     private Login login = new Login();
+    private ArrayList<ServerWorker> workers;
 
     public Communicator(InputStream inputStream, OutputStream outputStream) {
         this.inputStream = inputStream;
@@ -24,7 +27,16 @@ public class Communicator {
 
             if("quit".equalsIgnoreCase(command)) return;
             handleLogin(command,tokens);
+            showUsers();
+
             line = reader.readLine();
+        }
+    }
+
+    private void showUsers() throws IOException {
+        String online = "Online: " + login.getUser() + "\n";
+        for(ServerWorker worker : workers) {
+            worker.sendMessage(online);
         }
     }
 
@@ -35,6 +47,15 @@ public class Communicator {
         } else {
             message = "You typed: " + command + "\n";
         }
+        outputStream.write(message.getBytes());
+    }
+
+    @Override
+    public void send(ArrayList<ServerWorker> workers) {
+        this.workers = workers;
+    }
+
+    public void sendMessage(String message) throws IOException {
         outputStream.write(message.getBytes());
     }
 }

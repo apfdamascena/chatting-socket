@@ -1,8 +1,9 @@
 package com.main.apfd;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-public class ServerWorker extends Thread {
+public class ServerWorker extends Thread implements Workers{
 
     private final Client client;
 
@@ -17,5 +18,15 @@ public class ServerWorker extends Thread {
         } catch (IOException | InterruptedException exception) {
             exception.printStackTrace();
         }
+    }
+
+    @Override
+    public void send(ArrayList<ServerWorker> workers) {
+        client.send(workers);
+    }
+
+    public void sendMessage(String message) throws IOException {
+        Communicator communicator = client.getCommunicator();
+        communicator.sendMessage(message);
     }
 }
