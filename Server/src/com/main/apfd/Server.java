@@ -31,8 +31,9 @@ public class Server extends Thread {
             System.out.println("Accepeted connection from " + clientSocket);
             ServerWorker worker = new ServerWorker(new Client(clientSocket));
             workers.add(worker);
-            worker.start();
             worker.send(workers);
+            worker.start();
+
         }
     }
 

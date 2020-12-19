@@ -11,10 +11,17 @@ public class Communicator implements Workers {
     private OutputStream outputStream;
     private Login login = new Login();
     private ArrayList<ServerWorker> workers;
+    private Client client;
 
-    public Communicator(InputStream inputStream, OutputStream outputStream) {
+    public Communicator(Client client, InputStream inputStream, OutputStream outputStream) {
         this.inputStream = inputStream;
         this.outputStream = outputStream;
+        this.client = client;
+    }
+
+    @Override
+    public void send(ArrayList<ServerWorker> workers) {
+        this.workers = workers;
     }
 
     public void communicate() throws IOException {
@@ -26,17 +33,11 @@ public class Communicator implements Workers {
             String command = tokens[0];
 
             if("quit".equalsIgnoreCase(command)) return;
+            client.user = tokens[1];
             handleLogin(command,tokens);
             showUsers();
 
             line = reader.readLine();
-        }
-    }
-
-    private void showUsers() throws IOException {
-        String online = "Online: " + login.getUser() + "\n";
-        for(ServerWorker worker : workers) {
-            worker.sendMessage(online);
         }
     }
 
@@ -50,12 +51,17 @@ public class Communicator implements Workers {
         outputStream.write(message.getBytes());
     }
 
-    @Override
-    public void send(ArrayList<ServerWorker> workers) {
-        this.workers = workers;
+    private void showUsers() throws IOException {
+        for(ServerWorker worker : workers) {
+            String online = "Online: " + worker.getUser() + "\n";
+            sendMessage(online);
+        }
     }
 
     public void sendMessage(String message) throws IOException {
-        outputStream.write(message.getBytes());
+        if(login.getUser() != null){
+            outputStream.write(message.getBytes());
+        }
     }
+
 }

@@ -9,10 +9,11 @@ public class Client implements Workers {
 
     private final Socket clientSocket;
     private Communicator communicator;
+    protected String user = null;
 
     public Client(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-        this.communicator = new Communicator(clientSocket.getInputStream(), clientSocket.getOutputStream());
+        this.communicator = new Communicator(this,clientSocket.getInputStream(), clientSocket.getOutputStream());
     }
 
     public void handleClientSocket() throws IOException, InterruptedException {
@@ -25,7 +26,5 @@ public class Client implements Workers {
         communicator.send(workers);
     }
 
-    public Communicator getCommunicator() {
-        return communicator;
-    }
+
 }

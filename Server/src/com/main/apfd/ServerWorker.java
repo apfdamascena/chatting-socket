@@ -25,8 +25,7 @@ public class ServerWorker extends Thread implements Workers{
         client.send(workers);
     }
 
-    public void sendMessage(String message) throws IOException {
-        Communicator communicator = client.getCommunicator();
-        communicator.sendMessage(message);
+    public String getUser(){
+        return client.user;
     }
 }
