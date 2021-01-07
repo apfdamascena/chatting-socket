@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.List;
 
 public class ServerWorker extends Thread implements Communicate {
 
@@ -38,39 +39,35 @@ public class ServerWorker extends Thread implements Communicate {
         String line = reader.readLine();
 
         while(line != null){
-            String[] tokens = StringUtils.split(line);
-            String command = tokens[0];
-            if(isLogin(command)) handleLogin(tokens);
-            if(isQuitOrLogoff(command)) handleLogoff();
-            if(isMessage(command)) {
+
+            Command command = new CommandProcessor().process(line);
+            Action action = command.getAction();
+            List<String> arguments = command.getArguments();
+
+            if(isLogin(action)) handleLogin(arguments);
+            if(isLogOut(action)) handleLogoff();
+            if(isMessage(action)) {
                 String[] withLotsOfSpace = StringUtils.split(line,null, 3);
                 communicator.handleMessage(withLotsOfSpace, rooms);
             }
-            if(isJoin(command)) handleChattingGroup(tokens);
+            if(isJoin(action)) handleChattingGroup(arguments);
             line = reader.readLine();
         }
     }
 
-    private boolean isQuitOrLogoff(String command){
-        return command.equalsIgnoreCase("quit") || command.equalsIgnoreCase("logoff");
+    private boolean isLogOut(Action command){ return command.equals(Action.logout); }
+    private boolean isLogin(Action command){
+         return command.equals(Action.login);
+    }
+    private boolean isMessage(Action command) { return command.equals(Action.message); }
+    private boolean isJoin(Action command) {
+        return command.equals(Action.join);
     }
 
-    private boolean isLogin(String command){
-        return command.equalsIgnoreCase("login");
-    }
-
-    private boolean isMessage(String command) {
-        return command.equalsIgnoreCase("message");
-    }
-
-    private boolean isJoin(String command) {
-        return command.equalsIgnoreCase("join");
-    }
-
-    private void handleLogin(String[] tokens) {
-        if(!wasWrittenUserPasswordAndCommand(tokens)) return;
-        String user = tokens[1];
-        String password = tokens[2];
+    private void handleLogin(List<String> arguments) {
+        if(!wasWrittenUserPassword(arguments)) return;
+        String user = arguments.get(0);
+        String password = arguments.get(1);
         Boolean isLogged = authenticator.authenticate(user, password);
 
         if(!isLogged) return;
@@ -80,8 +77,8 @@ public class ServerWorker extends Thread implements Communicate {
         communicator.showUsersLogged();
     }
 
-    private boolean wasWrittenUserPasswordAndCommand(String[] tokens){
-        return tokens.length == 3;
+    private boolean wasWrittenUserPassword(List<String> arguments){
+        return arguments.size() == 2;
     }
 
     private void handleLogoff() throws IOException {
@@ -90,15 +87,15 @@ public class ServerWorker extends Thread implements Communicate {
         clientSocket.close();
     }
 
-    private void handleChattingGroup(String[] tokens){
-        if(wasWrittenRoomAndCommand(tokens)){
-            String room = tokens[1];
+    private void handleChattingGroup(List<String> arguments){
+        if(wasWrittenRoom(arguments)){
+            String room = arguments.get(0);
             rooms.add(room);
         }
     }
 
-    private boolean wasWrittenRoomAndCommand(String[] tokens){
-        return tokens.length == 2;
+    private boolean wasWrittenRoom(List<String> arguments){
+        return arguments.size() == 1;
     }
 
     @Override
