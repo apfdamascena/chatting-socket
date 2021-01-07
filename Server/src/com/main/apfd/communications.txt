@@ -1,0 +1,10 @@
+User -> Server
+    -> login / logout
+    -> status
+
+Server -> user
+    -> online / offline
+
+User -> User
+    -> broadcast messages
+    -> direct messages

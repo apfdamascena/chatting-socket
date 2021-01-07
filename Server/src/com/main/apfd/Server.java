@@ -8,36 +8,30 @@ import java.util.List;
 
 public class Server extends Thread {
 
-    private final int port = 9807;
+    private final int  port = 9807;
     private ArrayList<ServerWorker> workers = new ArrayList<>();
 
     @Override
-    public void run() {
-        handleInitialize();
-    }
-
-    private void handleInitialize(){
+    public void run(){
         try {
-            initialize();
+            connect();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
     }
 
-    private void initialize() throws IOException {
+    private void connect() throws  IOException{
         ServerSocket serverSocket = new ServerSocket(port);
         while(true){
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Accepeted connection from " + clientSocket);
-            ServerWorker worker = new ServerWorker(new Client(clientSocket));
+            ServerWorker worker = new ServerWorker(this, clientSocket);
             workers.add(worker);
-            worker.send(workers);
             worker.start();
-
         }
     }
 
     public List<ServerWorker> getWorkers(){
         return workers;
     }
+
 }

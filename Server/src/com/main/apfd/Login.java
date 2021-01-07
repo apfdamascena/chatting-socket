@@ -1,27 +1,24 @@
 package com.main.apfd;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Login {
 
-    private Authenticator authenticator = new Authenticator();
-    private String errorToLengthLessThanThree = "The length must be three words";
     private String user;
 
+    Map<String, String> accounts = new HashMap<>(){{
+        put("guest", "guest");
+        put("alex", "alex");
+    }};
 
-    public String handleLogin(String[] tokens) {
-        if(isLengthEqualThree(tokens)){
-            this.user = tokens[1];
-            String password = tokens[2];
-            return this.authenticator.authenticate(user, password);
-        } else {
-            return errorToLengthLessThanThree;
-        }
+    public Boolean authenticator(String user, String password){
+        if(!accounts.get(user).equals(password)){ return false;}
+        this.user = user;
+        return true;
     }
 
-    private boolean isLengthEqualThree(String[] tokens){
-        return tokens.length == 3;
-    }
-
-    public String getUser(){
+    public String getUser() {
         return user;
     }
 }
