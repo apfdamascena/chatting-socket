@@ -34,4 +34,7 @@ public class Server extends Thread {
         return workers;
     }
 
+    public void removeWorker(ServerWorker worker) {
+        workers.remove(worker);
+    }
 }

@@ -96,6 +96,7 @@ public class ServerWorker extends Thread {
     }
 
     private void handleLogoff() throws IOException {
+        server.removeWorker(this);
         showCurrentUserStatusTo("Offline");
         clientSocket.close();
     }

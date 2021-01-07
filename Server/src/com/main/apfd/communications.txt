@@ -8,3 +8,8 @@ Server -> user
 User -> User
     -> broadcast messages
     -> direct messages
+
+commands:
+    login user password
+    quit/logoff
+    msg toUser text
