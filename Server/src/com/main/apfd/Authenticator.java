@@ -3,7 +3,7 @@ package com.main.apfd;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Login {
+public class Authenticator implements Authenticate {
 
     private String user;
 
@@ -12,7 +12,8 @@ public class Login {
         put("alex", "alex");
     }};
 
-    public Boolean authenticator(String user, String password){
+    @Override
+    public Boolean authenticate(String user, String password){
         if(!accounts.get(user).equals(password)){ return false;}
         this.user = user;
         return true;
