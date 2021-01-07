@@ -1,13 +1,11 @@
 package com.main.apfd;
 
 import org.apache.commons.lang3.StringUtils;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
 
-public class ServerWorker extends Thread{
-
+public class ServerWorker extends Thread {
 
     private final Socket clientSocket;
     private final Server server;
@@ -15,35 +13,41 @@ public class ServerWorker extends Thread{
     InputStream inputStream;
     OutputStream outputStream;
 
-    public ServerWorker(Server server, Socket clientSocket) {
+    public ServerWorker(Server server, Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
         this.server = server;
+        this.inputStream = clientSocket.getInputStream();
+        this.outputStream = clientSocket.getOutputStream();
     }
 
     @Override
     public void run() {
         try {
             handlesocketClient();
-            clientSocket.close();
         } catch (IOException | InterruptedException error){
             error.printStackTrace();
         }
     }
 
     private void handlesocketClient() throws IOException, InterruptedException {
-        this.inputStream = clientSocket.getInputStream();
-        this.outputStream = clientSocket.getOutputStream();
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line = reader.readLine();
 
         while(line != null){
             String[] tokens = StringUtils.split(line);
             String command = tokens[0];
-            if(command.equalsIgnoreCase("quit")) return;
-            if(command.equalsIgnoreCase("login")) handleLogin(tokens);
+            if(isEqualToLogin(command)) handleLogin(tokens);
+            if(isEqualToQuitOrLogoff(command)) handleLogoff();
             line = reader.readLine();
         }
+    }
+
+    private boolean isEqualToQuitOrLogoff(String command){
+        return command.equalsIgnoreCase("quit") || command.equalsIgnoreCase("logoff");
+    }
+
+    private boolean isEqualToLogin(String command){
+        return command.equalsIgnoreCase("login");
     }
 
     private void handleLogin(String[] tokens) {
@@ -53,7 +57,8 @@ public class ServerWorker extends Thread{
         Boolean isLogged = login.authenticator(user, password);
 
         if(isLogged){
-            showAllOnlineUsers();
+            showCurrentUserStatusTo("Online");
+            showUsersLogged();
         }
     }
 
@@ -61,17 +66,26 @@ public class ServerWorker extends Thread{
         return tokens.length == 3;
     }
 
-    private void showAllOnlineUsers(){
+    private void showCurrentUserStatusTo(String status){
         String user = login.getUser();
-        String onlineUsersToCurrentUser = "online: " + user + "\n";
+        String statusUsersToCurrentUser = status + ": " + user + "\n";
         List<ServerWorker> workers = server.getWorkers();
 
         workers.forEach((worker) -> {
             if(!isCurrentUserEqualToWorkerUser(worker)){
-                worker.tryTosend(onlineUsersToCurrentUser, user);
+                worker.tryTosend(statusUsersToCurrentUser, user);
             }
         });
+    }
 
+    private boolean isCurrentUserEqualToWorkerUser(ServerWorker worker){
+        String currentUser = login.getUser();
+        String workerUser = worker.getLogin();
+        return currentUser.equals(workerUser);
+    }
+
+    private void showUsersLogged(){
+        List<ServerWorker> workers = server.getWorkers();
         workers.forEach((worker) -> {
             if(!isCurrentUserEqualToWorkerUser(worker)){
                 String workerUser = worker.getLogin();
@@ -79,6 +93,11 @@ public class ServerWorker extends Thread{
                 tryTosend(onlineMessageToOthersUsersLogged, workerUser);
             }
         });
+    }
+
+    private void handleLogoff() throws IOException {
+        showCurrentUserStatusTo("Offline");
+        clientSocket.close();
     }
 
     private void tryTosend(String message, String user) {
@@ -93,12 +112,6 @@ public class ServerWorker extends Thread{
         if(user != null){
             outputStream.write(message.getBytes());
         }
-    }
-
-    private boolean isCurrentUserEqualToWorkerUser(ServerWorker worker){
-        String currentUser = login.getUser();
-        String workerUser = worker.getLogin();
-        return currentUser.equals(workerUser);
     }
 
     private String getLogin(){
