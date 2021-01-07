@@ -2,16 +2,19 @@ package com.main.apfd;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.List;
 
 public class Communicator implements Communicate {
 
     private final OutputStream outputStream;
     private final Server server;
+    private final String user;
 
-    public Communicator(Server server, OutputStream outputStream){
+    public Communicator(Server server, OutputStream outputStream, String user){
         this.outputStream = outputStream;
         this.server = server;
+        this.user = user;
     }
 
     @Override
@@ -29,7 +32,7 @@ public class Communicator implements Communicate {
         }
     }
 
-    public void showCurrentUserStatusTo(String status, String user){
+    public void showCurrentUserStatusTo(String status){
         String statusUsersToCurrentUser = status + ": " + user + "\n";
         List<ServerWorker> workers = server.getWorkers();
 
@@ -45,27 +48,29 @@ public class Communicator implements Communicate {
         return currentUser.equals(workerUser);
     }
 
-    public void showUsersLoggedTo(String user){
+    public void showUsersLogged(){
         List<ServerWorker> workers = server.getWorkers();
         workers.forEach((worker) -> {
+            String workerUser = worker.getUser();
             if(!isCurrentUserEqualToWorkerUser(worker, user)){
-                String workerUser = worker.getUser();
                 String onlineMessageToOthersUsersLogged = "online: " + workerUser + "\n";
                 tryTosend(onlineMessageToOthersUsersLogged, workerUser);
             }
         });
     }
 
-    public void handleMessage(String[] tokens, String sendUser) {
+    public void handleMessage(String[] tokens, HashSet<String> rooms) {
         String receiver = tokens[1];
         String bodyMessage = tokens[2];
+
+        Boolean isChatRoom = receiver.charAt(0) == '#';
 
         List<ServerWorker> workers = server.getWorkers();
         workers.forEach((worker) -> {
             String workerUser = worker.getUser();
             if(isReceiverEqualTo(workerUser, receiver)){
-                String message = "Message from " + sendUser + ": " + bodyMessage + "\n";
-                worker.tryTosend(message, sendUser);
+                String message = "Message from " + user + ": " + bodyMessage + "\n";
+                worker.tryTosend(message, user);
             }
         });
     }
