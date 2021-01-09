@@ -2,33 +2,6 @@ package com.main.apfd;
 
 import java.util.List;
 
-
-class Constants {
-    public static final String LOGIN_COMMAND = "login";
-}
-enum Action {
-    login, message, logout, join, none;
-
-    public static Action actionFrom(String action){
-        if(action.equalsIgnoreCase(Constants.LOGIN_COMMAND)){
-            return Action.login;
-        }
-
-        if(action.equalsIgnoreCase("message")){
-            return Action.message;
-        }
-
-        if(action.equalsIgnoreCase("logout")){
-            return Action.logout;
-        }
-
-        if(action.equalsIgnoreCase("join")){
-            return Action.join;
-        }
-        return Action.none;
-    }
-}
-
 public class Command {
 
     private Action action;
@@ -47,7 +20,6 @@ public class Command {
     public Action getAction() {
         return action;
     }
-
     public List<String> getArguments(){
         return arguments;
     }
