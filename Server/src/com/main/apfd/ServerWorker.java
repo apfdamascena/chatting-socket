@@ -11,6 +11,7 @@ public class ServerWorker extends Thread implements Communicate {
     private final Communicator communicator;
     private Display display;
     private String user;
+    private List<HandleCommand> possibleCommands;
 
 
     public ServerWorker(Socket clientSocket) throws IOException {
@@ -19,6 +20,7 @@ public class ServerWorker extends Thread implements Communicate {
         OutputStream outputStream = clientSocket.getOutputStream();
         this.communicator = new Communicator(outputStream);
         this.display = new Display(communicator);
+        this.possibleCommands = new HandleCommandFactory(display, clientSocket).make();
     }
 
     @Override
@@ -42,21 +44,17 @@ public class ServerWorker extends Thread implements Communicate {
 
             ActionManager manager = new ActionManager(command);
 
+            possibleCommands.forEach(handleCommand -> manager.realize(handleCommand));
+
             if(isLogin(action)) {
                 user = arguments.get(0);
-                manager.realize(new HandleLoginCommand(display));
             }
-            if(isLogOut(action)) manager.realize(new HandleLogoutCommand(clientSocket, display));
-            if(isMessage(action)) manager.realize(new HandleMessageCommand());
-            if(isJoin(action)) manager.realize(new HandleJoinCommand());
+
             line = reader.readLine();
         }
     }
 
-    private boolean isLogOut(Action command){ return command.equals(Action.logout); }
     private boolean isLogin(Action command){ return command.equals(Action.login);}
-    private boolean isMessage(Action command) { return command.equals(Action.message); }
-    private boolean isJoin(Action command){ return command.equals(Action.join); }
 
     @Override
     public void tryToSend(String message) { communicator.tryToSend(message); }
